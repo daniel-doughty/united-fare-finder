@@ -1,2 +1,5 @@
 venv/*
 output.txt
+config.py
+cookies.txt
+__pycache__

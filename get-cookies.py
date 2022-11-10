@@ -3,9 +3,10 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 import time
+import config
 
-mileage_plus_number = ""
-password = ""
+mileage_plus_number = config.mileage_plus_number
+password = config.password
 
 driver = webdriver.Chrome()
 driver.implicitly_wait(10)
@@ -30,6 +31,6 @@ time.sleep(60)
 
 cookies = driver.get_cookies()
 
-print cookies
+print(cookies)
 
 driver.close()
