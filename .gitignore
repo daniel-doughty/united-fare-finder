@@ -3,3 +3,4 @@ output.txt
 config.py
 cookies.txt
 __pycache__
+env/*
