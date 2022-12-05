@@ -40,8 +40,7 @@ def parsePageSource(page_source):
         rowIndex += 1
 
     # write to file
-    parseFile = "output.txt"
-    with open(parseFile, "w") as f:
+    with open("output.txt", "w") as f:
         for i in range(len(flight_elements)):
             for j in range(len(flight_elements[i])):
                 print(*flight_elements[i][j], file=f)
