@@ -12,10 +12,9 @@ def parsePageSource(page_source):
     flight_rows = soup.find_all(
         "div",
         class_="app-components-Shopping-GridItem-styles__flightRow--1E4Sk")
-    rows = (len(flight_rows))
 
     # list to hold flight information for each flight
-    flight_elements = [[[] for _ in range(7)] for _ in range(rows)]
+    flight_elements = [[[] for _ in range(7)] for _ in range(len(flight_rows))]
 
     rowIndex = 0
     for flight_rows in flight_rows:
