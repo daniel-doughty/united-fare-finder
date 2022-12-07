@@ -65,9 +65,16 @@ elem = driver.find_element(
   "button.app-components-BookFlightForm-bookFlightForm__findFlightBtn--1lbFe")
 elem.submit()
 
-time.sleep(10)\
+time.sleep(10)
 
 page_source = driver.page_source
-parsePageSource(page_source)
+flight_elements = parsePageSource(page_source)
+
+# write to file
+# with open("output.txt", "w") as f:
+for i in range(len(flight_elements)):
+    for j in range(len(flight_elements[i])):
+        print(*flight_elements[i][j])
+    print()
 
 driver.close()

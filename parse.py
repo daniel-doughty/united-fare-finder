@@ -38,9 +38,4 @@ def parsePageSource(page_source):
             flight_cost.text.strip())
         rowIndex += 1
 
-    # write to file
-    with open("output.txt", "w") as f:
-        for i in range(len(flight_elements)):
-            for j in range(len(flight_elements[i])):
-                print(*flight_elements[i][j], file=f)
-            print("", file=f)
+    return flight_elements
