@@ -67,11 +67,11 @@ elem.submit()
 
 time.sleep(10)
 
+# scrape fare data
 page_source = driver.page_source
 flight_elements = parsePageSource(page_source)
 
 # write to file
-# with open("output.txt", "w") as f:
 for i in range(len(flight_elements)):
     for j in range(len(flight_elements[i])):
         print(*flight_elements[i][j])
