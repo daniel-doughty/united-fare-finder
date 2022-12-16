@@ -1,12 +1,7 @@
 # parse.py
 
-from bs4 import BeautifulSoup
-
-
-def parsePageSource(page_source):
+def parsePageSource(soup):
     # function to parse page source raw data
-
-    soup = BeautifulSoup(page_source, "html.parser")
 
     # flight listings per website layout (from top to bottom)
     flight_rows = soup.find_all(
