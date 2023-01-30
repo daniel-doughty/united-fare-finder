@@ -2,10 +2,18 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
+from bs4 import BeautifulSoup
 from parse import parsePageSource
 import time
 import config
 
+ORIGIN = "ORD"
+DEST = [
+  "hnl", "slc", "dfw", "lax", "sea", "atl",
+  "mia", "mco", "sfo", "jfk", "ewr", "lga", "dca", "iad"
+]
+DEP_DATE = "03/01/23"
+RET_DATE = "03/10/23"
 
 mileage_plus_number = config.mileage_plus_number
 password = config.password
@@ -36,45 +44,58 @@ elem.send_keys(Keys.RETURN)
 elem = driver.find_element(By.ID, "closeBtn")
 elem.click()
 
-elem = driver.find_element(By.ID, "bookFlightOriginInput")
-elem.clear()
-elem.send_keys("ORD")
-elem.send_keys(Keys.TAB)
+for DEST in DEST:
 
-elem = driver.find_element(By.ID, "bookFlightDestinationInput")
-elem.clear()
-elem.send_keys("HNL")
-elem.send_keys(Keys.TAB)
+    elem = driver.find_element(
+      By.ID, "bookFlightOriginInput")
+    elem.send_keys(Keys.CONTROL + "a")
+    elem.send_keys(ORIGIN)
+    elem.send_keys(Keys.TAB)
 
-elem = driver.find_element(By.ID, "DepartDate")
-elem.clear()
-elem.send_keys("03/03/23")
-elem.send_keys(Keys.TAB)
+    elem = driver.find_element(By.ID, "bookFlightDestinationInput")
+    elem.send_keys(Keys.CONTROL + "a")
+    elem.send_keys(DEST)
+    elem.send_keys(Keys.TAB)
 
-elem = driver.find_element(By.ID, "ReturnDate")
-elem.clear()
-elem.send_keys("03/10/23")
-elem.send_keys(Keys.TAB)
+    elemList = driver.find_elements(
+      By.XPATH, '//div[@class="DateInput DateInput_1"]/input')
 
-elem = driver.find_element(
-  By.XPATH, '//*[@id="bookFlightForm"]/div[1]/div[1]/label')
-elem.click()
+    elem = elemList[0]
+    elem.send_keys(Keys.CONTROL + "a")
+    elem.send_keys(DEP_DATE)
 
-elem = driver.find_element(
-  By.CSS_SELECTOR,
-  "button.app-components-BookFlightForm-bookFlightForm__findFlightBtn--1lbFe")
-elem.submit()
+    elem = elemList[1]
+    elem.send_keys(Keys.CONTROL + "a")
+    elem.send_keys(RET_DATE)
 
-time.sleep(10)
+    elem = driver.find_element(
+      By.XPATH, '//*[@id="bookFlightForm"]/div[1]/div[1]/label')
+    elem.click()
 
-# scrape fare data
-page_source = driver.page_source
-flight_elements = parsePageSource(page_source)
+    elem = driver.find_element(
+      By.CSS_SELECTOR,
+      "button."
+      "app-components-BookFlightForm-bookFlightForm__findFlightBtn--1lbFe")
+    elem.submit()
 
-# write to file
-for i in range(len(flight_elements)):
-    for j in range(len(flight_elements[i])):
-        print(*flight_elements[i][j])
-    print()
+    time.sleep(15)
+
+    # scrape fare data
+    page_source = driver.page_source
+    soup = BeautifulSoup(page_source, "html.parser")
+    flight_elements = parsePageSource(soup)
+
+    # write to file
+    print(DEST + " ********************************************************\n")
+    for i in range(len(flight_elements)):
+        for j in range(len(flight_elements[i])):
+            print(*flight_elements[i][j])
+        print()
+
+    # return to home page
+    elem = driver.find_element(By.ID, "unitedLogo")
+    elem.click()
+
+    time.sleep(10)
 
 driver.close()
