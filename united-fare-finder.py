@@ -6,6 +6,8 @@ from bs4 import BeautifulSoup
 import config
 # can use embed() to launch Ipython terminal for debugging
 from IPython import embed
+import re
+from datetime import datetime
 
 HOME_PAGE_URL = "https://www.united.com"
 ORIGIN = "ORD"
@@ -44,6 +46,10 @@ elem.send_keys(Keys.RETURN)
 elem = driver.find_element(By.ID, "closeBtn")
 elem.click()
 
+#write CSV headers to file
+print("origin, destination, date, miles, dollars")
+
+#iterate through each destination
 for DEST in DEST:
 
     elem = driver.find_element(
@@ -111,10 +117,30 @@ for DEST in DEST:
         class_="app-components-Shopping-FlexibleCalendar-styles__content--11v1q")
    
 
-    # write to file
-
+    # parse rows and write to file
     for element in price_elements:
-      print(ORIGIN+", ", DEST+", ", element.text)
+      s = element.text
+      
+      # parse date
+      try:
+        date = re.search("\, (.*?)starting",s).group(1)
+        formatted_date = datetime.strptime(date, "%B %d, %Y").strftime("%m-%d-%Y")  
+      except:
+        date = ""
+
+      # parse miles
+      try:  
+        miles = re.search("from(.*?)\+",s).group(1)
+      except: 
+        miles = ""
+
+      # parse dollars
+      try:  
+        dollars = re.search("\+(.*?)$",s).group(1)
+      except: 
+        dollars = ""
+
+      print(ORIGIN+",", DEST+",",formatted_date+",",miles+",",dollars)
 
     # return to home page
     driver.get(HOME_PAGE_URL)
