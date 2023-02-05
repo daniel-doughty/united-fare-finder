@@ -3,17 +3,19 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 from bs4 import BeautifulSoup
-from parse import parsePageSource
-import time
 import config
+# can use embed() to launch Ipython terminal for debugging
+from IPython import embed
+import re
+from datetime import datetime
 
+HOME_PAGE_URL = "https://www.united.com"
 ORIGIN = "ORD"
 DEST = [
   "hnl", "slc", "dfw", "lax", "sea", "atl",
   "mia", "mco", "sfo", "jfk", "ewr", "lga", "dca", "iad"
 ]
 DEP_DATE = "03/01/23"
-RET_DATE = "03/10/23"
 
 mileage_plus_number = config.mileage_plus_number
 password = config.password
@@ -21,7 +23,7 @@ cookies = config.cookies
 
 driver = webdriver.Chrome()
 driver.implicitly_wait(10)
-driver.get("https://www.united.com")
+driver.get(HOME_PAGE_URL)
 
 driver.delete_all_cookies()
 for cookie in cookies:
@@ -44,16 +46,25 @@ elem.send_keys(Keys.RETURN)
 elem = driver.find_element(By.ID, "closeBtn")
 elem.click()
 
+#write CSV headers to file
+print("origin, destination, date, miles, dollars")
+
+#iterate through each destination
 for DEST in DEST:
 
     elem = driver.find_element(
       By.ID, "bookFlightOriginInput")
+    # on macbook, ctrl+a doesn't work, so also adding clear()
+    elem.clear()
     elem.send_keys(Keys.CONTROL + "a")
+    elem.send_keys(Keys.COMMAND + "a")
     elem.send_keys(ORIGIN)
     elem.send_keys(Keys.TAB)
 
     elem = driver.find_element(By.ID, "bookFlightDestinationInput")
+    elem.clear()
     elem.send_keys(Keys.CONTROL + "a")
+    elem.send_keys(Keys.COMMAND + "a")
     elem.send_keys(DEST)
     elem.send_keys(Keys.TAB)
 
@@ -61,41 +72,77 @@ for DEST in DEST:
       By.XPATH, '//div[@class="DateInput DateInput_1"]/input')
 
     elem = elemList[0]
+    elem.clear()
     elem.send_keys(Keys.CONTROL + "a")
+    elem.send_keys(Keys.COMMAND + "a")
     elem.send_keys(DEP_DATE)
 
-    elem = elemList[1]
-    elem.send_keys(Keys.CONTROL + "a")
-    elem.send_keys(RET_DATE)
-
+    # 'Book with miles' checkbox, can't click checkbox directly
     elem = driver.find_element(
       By.XPATH, '//*[@id="bookFlightForm"]/div[1]/div[1]/label')
+    checkbox = driver.find_element(
+      By.ID, 'award')
+    # Dont click if checkbox is already checked
+    if checkbox.is_selected() != True:
+      elem.click()
+
+    # 'One-way radio button'
+    elem = driver.find_element(By.ID, 'oneway')
     elem.click()
 
+    # 'Find flights' button
     elem = driver.find_element(
       By.CSS_SELECTOR,
       "button."
       "app-components-BookFlightForm-bookFlightForm__findFlightBtn--1lbFe")
     elem.submit()
+    
+    elem = driver.find_element(
+      By.CSS_SELECTOR,
+      "button."
+      "app-components-Shopping-Calendar-styles__calendarIcon--2nO38")
+    elem.click()
 
-    time.sleep(15)
+    # Waits for calendar to load on page
+    elem = driver.find_element(
+      By.CSS_SELECTOR,
+      "div."
+      "app-components-Shopping-FlexibleCalendar-styles__content--11v1q")
 
     # scrape fare data
     page_source = driver.page_source
     soup = BeautifulSoup(page_source, "html.parser")
-    flight_elements = parsePageSource(soup)
+    price_elements = soup.find_all(
+        "div",
+        class_="app-components-Shopping-FlexibleCalendar-styles__content--11v1q")
+   
 
-    # write to file
-    print(DEST + " ********************************************************\n")
-    for i in range(len(flight_elements)):
-        for j in range(len(flight_elements[i])):
-            print(*flight_elements[i][j])
-        print()
+    # parse rows and write to file
+    for element in price_elements:
+      s = element.text
+      
+      # parse date
+      try:
+        date = re.search("\, (.*?)starting",s).group(1)
+        formatted_date = datetime.strptime(date, "%B %d, %Y").strftime("%m-%d-%Y")  
+      except:
+        date = ""
+
+      # parse miles
+      try:  
+        miles = re.search("from(.*?)\+",s).group(1)
+      except: 
+        miles = ""
+
+      # parse dollars
+      try:  
+        dollars = re.search("\+(.*?)$",s).group(1)
+      except: 
+        dollars = ""
+
+      print(ORIGIN+",", DEST+",",formatted_date+",",miles+",",dollars)
 
     # return to home page
-    elem = driver.find_element(By.ID, "unitedLogo")
-    elem.click()
-
-    time.sleep(10)
+    driver.get(HOME_PAGE_URL)
 
 driver.close()
