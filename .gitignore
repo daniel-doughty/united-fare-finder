@@ -1,5 +1,6 @@
 venv/*
 output.txt
+output.csv
 config.py
 cookies.txt
 __pycache__
