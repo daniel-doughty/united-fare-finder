@@ -47,11 +47,11 @@ elem = driver.find_element(By.ID, "closeBtn")
 elem.click()
 
 #write CSV headers to file
-print("origin, destination, date, miles, dollars")
+print("origin, destination, date, miles, dollars, error")
 
 #iterate through each destination
 for DEST in DEST:
-
+  try:
     elem = driver.find_element(
       By.ID, "bookFlightOriginInput")
     # on macbook, ctrl+a doesn't work, so also adding clear()
@@ -141,7 +141,9 @@ for DEST in DEST:
         dollars = ""
 
       print(ORIGIN+",", DEST+",",formatted_date+",",miles+",",dollars)
-
+  except Exception as e:
+    print(ORIGIN+",", DEST+",",",",",",",",f'{type(e)}: {e.message}')
+  finally:
     # return to home page
     driver.get(HOME_PAGE_URL)
 
